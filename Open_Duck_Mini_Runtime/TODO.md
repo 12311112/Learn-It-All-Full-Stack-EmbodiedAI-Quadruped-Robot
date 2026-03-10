@@ -1,0 +1,3 @@
+- [] Better handle xbox controller 
+  - It's a little bit of a mess right now, how we handle directions and buttons etc
+- [] Make the offsets flashing work. This will be in the motor configuration script

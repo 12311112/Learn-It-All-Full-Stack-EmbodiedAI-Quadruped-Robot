@@ -1,0 +1,6 @@
+{
+    "python-envs.defaultEnvManager": "ms-python.python:conda",
+    "python-envs.defaultPackageManager": "ms-python.python:conda",
+    "http.proxy": "http://127.0.0.1:7892",
+    "http.proxySupport": "on"
+}
