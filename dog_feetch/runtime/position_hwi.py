@@ -66,19 +66,26 @@ class HWI:
 
         self.io = rustypot.feetech(usb_port, 1000000)
 
+    @staticmethod
+    def _to_float_list(values):
+        return [float(v) for v in values]
+
     def set_kps(self, kps):
-        self.kps = kps
+        self.kps = self._to_float_list(kps)
         self.io.set_kps(list(self.joints.values()), self.kps)
 
     def set_kds(self, kds):
-        self.kds = kds
+        self.kds = self._to_float_list(kds)
         self.io.set_kds(list(self.joints.values()), self.kds)
 
     def set_kp(self, id, kp):
         self.io.set_kps([id], [kp])
 
     def turn_on(self):
-        self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
+        self.io.set_kps(
+            list(self.joints.values()), self._to_float_list(self.low_torque_kps)
+        )
+
         print("turn on : low KPS set")
         time.sleep(1)
 
@@ -87,7 +94,7 @@ class HWI:
 
         time.sleep(1)
 
-        self.io.set_kps(list(self.joints.values()), self.kps)
+        self.io.set_kps(list(self.joints.values()), self._to_float_list(self.kps))
         print("turn on : high kps")
 
     def turn_off(self):

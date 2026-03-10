@@ -1,201 +1,97 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-机械狗默认位置设置工具
-功能：失能所有12个舵机，让用户手动调整姿态，然后读取并保存为默认位置
+机械狗默认位置定标工具
+流程：
+1) 失能所有舵机，手动摆姿态
+2) 读取所有关节当前位置
+3) 保存到 default_position.json
 """
 
+import json
 import os
 import sys
-import time
-import json
 
-# 添加项目根目录到路径
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
 from runtime.position_hwi import HWI
 
-# ==============================================
-# 配置参数
-# ==============================================
 DEFAULT_POSITION_FILE = "default_position.json"
 
 
-class DefaultPositionSetter:
-    def __init__(self):
-        self.hwi = None
-        self.default_positions = {}
+def rad_to_deg(rad):
+    return rad * 180.0 / 3.14159265359
 
-    def init_hardware(self):
-        """初始化硬件接口"""
-        print("🔌 正在连接舵机控制器...")
-        try:
-            self.hwi = HWI()
-            print("✅ 硬件连接成功")
-            return True
-        except Exception as e:
-            print(f"❌ 硬件连接失败: {e}")
-            print("请检查：")
-            print("  1. 机械狗是否已上电")
-            print("  2. USB连接是否正常")
-            print("  3. 串口设备路径是否正确")
-            return False
 
-    def disable_all_servos(self):
-        """失能所有舵机，释放扭力"""
-        print("\n🔓 正在失能所有舵机...")
-        try:
-            servo_ids = list(self.hwi.joints.values())
-            self.hwi.io.disable_torque(servo_ids)
-            print("✅ 所有舵机已失能，现在可以自由掰动关节")
-            return True
-        except Exception as e:
-            print(f"❌ 失能舵机失败: {e}")
-            return False
+def main():
+    print("=" * 72)
+    print("机械狗默认位置定标工具")
+    print("=" * 72)
 
-    def read_all_positions(self):
-        """读取所有舵机的当前位置（弧度）"""
-        print("\n📡 正在读取所有舵机位置...")
-        positions = {}
+    print("连接硬件...")
+    hwi = HWI(usb_port="/dev/ttyUSB0")
+    servo_ids = list(hwi.joints.values())
+    print("硬件连接成功。")
 
-        try:
-            # 读取所有舵机位置
-            servo_ids = list(self.hwi.joints.values())
-            present_positions = self.hwi.io.read_present_position(servo_ids)
+    input("\n按回车开始：先失能全部舵机...\n")
+    hwi.io.disable_torque(servo_ids)
+    print("已失能全部舵机，现在可以手动掰动关节。")
 
-            print("\n" + "="*70)
-            print(f"{'关节名称':<35} | {'ID':<4} | {'位置 (弧度)':<12} | {'位置 (度)':<10}")
-            print("-"*70)
+    print("\n请把机器人摆到你想要的默认姿态。")
+    input("摆好后按回车读取当前位置...\n")
 
-            for joint_name, joint_id in self.hwi.joints.items():
-                # 获取对应ID的位置
-                idx = servo_ids.index(joint_id)
-                position_rad = present_positions[idx]
-                position_deg = position_rad * 180.0 / 3.14159265359
+    present_positions = hwi.io.read_present_position(servo_ids)
 
-                positions[joint_name] = {
-                    "position_rad": round(position_rad, 4),
-                    "position_deg": round(position_deg, 2),
-                    "id": joint_id
-                }
+    print("\n" + "=" * 72)
+    print(f"{'joint_name':<32} {'id':<4} {'position(rad)':>14} {'position(deg)':>14}")
+    print("-" * 72)
 
-                print(f"{joint_name:<35} | {joint_id:<4} | {position_rad:>12.4f} | {position_deg:>10.2f}°")
+    result = {}
+    init_pos_dict = {}
 
-            print("="*70)
-            return positions
+    for joint_name, joint_id in hwi.joints.items():
+        idx = servo_ids.index(joint_id)
+        position_rad = float(present_positions[idx])
+        position_deg = rad_to_deg(position_rad)
 
-        except Exception as e:
-            print(f"❌ 读取位置失败: {e}")
-            return None
+        result[joint_name] = {
+            "id": joint_id,
+            "position_rad": round(position_rad, 6),
+            "position_deg": round(position_deg, 3),
+        }
+        init_pos_dict[joint_name] = round(position_rad, 6)
 
-    def save_positions(self, positions):
-        """保存位置到JSON文件"""
-        try:
-            # 保存完整数据
-            output_path = os.path.join(PROJECT_ROOT, DEFAULT_POSITION_FILE)
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(positions, f, indent=4, ensure_ascii=False)
+        print(
+            f"{joint_name:<32} {joint_id:<4} {position_rad:>14.6f} {position_deg:>14.3f}"
+        )
 
-            print(f"\n✅ 默认位置已保存到: {output_path}")
+    print("=" * 72)
 
-            # 生成可直接用于代码的字典格式
-            print("\n📋 可直接复制到代码中的格式：")
-            print("-"*70)
-            print("self.init_pos = {")
-            for joint_name, data in positions.items():
-                print(f'    "{joint_name}": {data["position_rad"]},')
-            print("}")
-            print("-"*70)
+    output_path = os.path.join(PROJECT_ROOT, DEFAULT_POSITION_FILE)
+    with open(output_path, "w", encoding="utf-8") as f:
+        json.dump(result, f, indent=2, ensure_ascii=False)
 
-            return True
-        except Exception as e:
-            print(f"❌ 保存失败: {e}")
-            return False
+    print(f"\n已保存：{output_path}")
 
-    def enable_all_servos_with_full_torque(self):
-        """使能所有舵机并设置完全扭矩，完全锁定当前位置"""
-        print("\n🔒 正在使能所有舵机（完全锁定模式）...")
-        try:
-            servo_ids = list(self.hwi.joints.values())
-            # 设置完全扭矩（正常 kps）
-            self.hwi.io.set_kps(servo_ids, self.hwi.normal_kps)
-            print("✅ 所有舵机已使能并完全锁定（正常扭矩模式）")
-            return True
-        except Exception as e:
-            print(f"❌ 使能舵机失败: {e}")
-            return False
+    print("\n可直接复制到 runtime/position_hwi.py 的 init_pos:")
+    print("init_pos = {")
+    for joint_name, value in init_pos_dict.items():
+        print(f'    "{joint_name}": {value},')
+    print("}")
 
-    def run(self):
-        """主流程"""
-        print("="*70)
-        print("       🤖 机械狗默认位置设置工具")
-        print("="*70)
-        print("功能说明：")
-        print("1. 程序会失能所有12个舵机，释放扭力")
-        print("2. 你可以手动调整机械狗到理想的默认姿态")
-        print("3. 调整完成后，程序会读取并保存所有关节的位置")
-        print("4. 保存的位置可以作为机械狗的默认站立姿态")
-        print("="*70)
+    choice = input("\n是否以低刚度锁定当前位置？(y/n，默认 y): ").strip().lower()
+    if choice != "n":
+        hwi.io.set_kps(servo_ids, [2.0] * len(servo_ids))
+        print("已设置低刚度。")
+    else:
+        print("保持失能状态。")
 
-        input("\n👉 按回车键开始...")
-
-        # 失能所有舵机
-        if not self.disable_all_servos():
-            return
-
-        # 等待用户手动调整
-        print("\n" + "="*70)
-        print("💡 现在所有关节都可以自由掰动了")
-        print("💡 请将机械狗调整到你想要的默认姿态")
-        print("💡 建议姿态：四条腿自然站立，身体水平")
-        print("="*70)
-        input("\n👉 调整完成后，按回车键继续...")
-
-        # 读取所有位置
-        positions = self.read_all_positions()
-        if positions is None:
-            print("❌ 无法读取位置，操作终止")
-            return
-
-        # 保存到文件
-        self.save_positions(positions)
-
-        # 询问是否使能舵机
-        print("\n" + "="*70)
-        choice = input("是否使能舵机锁定当前位置？(y/n，默认y): ").strip().lower()
-        if choice != 'n':
-            self.enable_all_servos_with_full_torque()
-        else:
-            print("⚠️  舵机保持失能状态，请注意机械狗可能会倒下")
-
-        print("\n✅ 操作完成！")
-        print(f"💡 默认位置已保存到 {DEFAULT_POSITION_FILE}")
-        print("💡 你可以将生成的字典复制到 runtime/position_hwi.py 的 init_pos 中")
-
-    def shutdown(self):
-        """关闭硬件连接"""
-        print("\n👋 程序已退出")
-
+    print("\n定标完成。")
 
 if __name__ == "__main__":
-    setter = DefaultPositionSetter()
-
-    if not setter.init_hardware():
-        exit(1)
-
     try:
-        setter.run()
+        main()
     except KeyboardInterrupt:
-        print("\n\n🛑 用户中断操作")
-        # 尝试失能所有舵机
-        try:
-            print("正在失能所有舵机...")
-            servo_ids = list(setter.hwi.joints.values())
-            setter.hwi.io.disable_torque(servo_ids)
-            print("✅ 所有舵机已失能")
-        except:
-            pass
-    finally:
-        setter.shutdown()
+        print("\n用户中断。")
