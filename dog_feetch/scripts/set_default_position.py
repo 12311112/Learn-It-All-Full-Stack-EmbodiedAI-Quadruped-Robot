@@ -114,14 +114,14 @@ class DefaultPositionSetter:
             print(f"❌ 保存失败: {e}")
             return False
 
-    def enable_all_servos_with_low_torque(self):
-        """使能所有舵机并设置低扭矩，锁定当前位置"""
-        print("\n🔒 正在使能所有舵机（低扭矩模式）...")
+    def enable_all_servos_with_full_torque(self):
+        """使能所有舵机并设置完全扭矩，完全锁定当前位置"""
+        print("\n🔒 正在使能所有舵机（完全锁定模式）...")
         try:
             servo_ids = list(self.hwi.joints.values())
-            # 设置低扭矩
-            self.hwi.io.set_kps(servo_ids, self.hwi.low_torque_kps)
-            print("✅ 所有舵机已使能并锁定（低扭矩模式）")
+            # 设置完全扭矩（正常 kps）
+            self.hwi.io.set_kps(servo_ids, self.hwi.normal_kps)
+            print("✅ 所有舵机已使能并完全锁定（正常扭矩模式）")
             return True
         except Exception as e:
             print(f"❌ 使能舵机失败: {e}")
@@ -166,7 +166,7 @@ class DefaultPositionSetter:
         print("\n" + "="*70)
         choice = input("是否使能舵机锁定当前位置？(y/n，默认y): ").strip().lower()
         if choice != 'n':
-            self.enable_all_servos_with_low_torque()
+            self.enable_all_servos_with_full_torque()
         else:
             print("⚠️  舵机保持失能状态，请注意机械狗可能会倒下")
 
