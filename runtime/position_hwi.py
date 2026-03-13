@@ -53,7 +53,23 @@ class HWI:
         "right_back_knee_joint": -0.648874,
         "right_back_ankle_joint": 2.176719,
         }
-    
+
+        self.limit_relate = {
+        "left_front_hip_joint": [],
+        "left_front_knee_joint": [],
+        "left_front_ankle_joint": [],
+        "left_back_hip_joint": [],
+        "left_back_knee_joint": [],
+        "left_back_ankle_joint": [],
+        "right_front_hip_joint": [],
+        "right_front_knee_joint": [],
+        "right_front_ankle_joint": [],
+        "right_back_hip_joint": [],
+        "right_back_knee_joint": [],
+        "right_back_ankle_joint": [],
+        }
+
+
         # 舵机偏移量字典 (用于校准机械零点)
         # 请在校准后填入具体数值
         self.joints_offsets = {joint: 0.0 for joint in self.joints.keys()}
@@ -103,6 +119,9 @@ class HWI:
         joints_positions is a dictionary with joint names as keys and joint positions as values
         Warning: expects radians
         """
+
+
+
         ids_positions = {
             self.joints[joint]: position + self.joints_offsets[joint]
             for joint, position in joints_positions.items()
