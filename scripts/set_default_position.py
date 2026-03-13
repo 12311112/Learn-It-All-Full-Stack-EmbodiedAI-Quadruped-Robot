@@ -90,6 +90,8 @@ def main():
 
     print("\n定标完成。")
 
+
+
 if __name__ == "__main__":
     try:
         main()
