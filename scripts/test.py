@@ -28,7 +28,7 @@ def main():
     hwi.turn_on()
     print("turn_on 完成，待机 2 秒...")
     time.sleep(2)
-    #hwi.turn_off()
+    hwi.turn_off()
     print("已失能。")
 
 

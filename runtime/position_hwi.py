@@ -8,17 +8,17 @@ class HWI:
         # --- 用户自定义的12舵机四足配置 ---
         self.joints = {
             "left_front_hip_joint": 0,
-            "left_front_knee_joint": 1,
-            "left_front_ankle_joint": 2,
+            "left_front_knee_joint": 4,#4
+            "left_front_ankle_joint": 5,#5
             "left_back_hip_joint": 3,
-            "left_back_knee_joint": 4,
-            "left_back_ankle_joint": 5,
-            "right_front_hip_joint": 9,
-            "right_front_knee_joint": 10,
-            "right_front_ankle_joint": 11,
-            "right_back_hip_joint": 6,
-            "right_back_knee_joint": 7,
-            "right_back_ankle_joint": 8,
+            "left_back_knee_joint": 1,#1
+            "left_back_ankle_joint": 2,#2
+            "right_front_hip_joint": 6,
+            "right_front_knee_joint": 7,
+            "right_front_ankle_joint": 8,
+            "right_back_hip_joint": 9,#9
+            "right_back_knee_joint": 10,#10
+            "right_back_ankle_joint": 11,#11
         }
 
         # 零位字典 (所有关节归中)
@@ -40,18 +40,18 @@ class HWI:
         # 初始站立姿态字典
         # 注意：这里我先全部填0，你需要根据你的机械结构实际情况修改这些数值！
         self.init_pos = {
-        "left_front_hip_joint": -0.138058,
-        "left_front_knee_joint": 2.38534,
-        "left_front_ankle_joint": 0.371223,
-        "left_back_hip_joint": 0.34668,
-        "left_back_knee_joint": -0.648874,
-        "left_back_ankle_joint": 0.403437,
-        "right_front_hip_joint": -0.949534,
-        "right_front_knee_joint": 1.756408,
-        "right_front_ankle_joint": -0.441786,
-        "right_back_hip_joint": 0.016874,
-        "right_back_knee_joint": -0.648874,
-        "right_back_ankle_joint": 2.176719,
+        "left_front_hip_joint": -0.084369, ##+++++++  
+        "left_front_knee_joint": -0.335942,#-----
+        "left_front_ankle_joint": 0.316,###-----
+        "left_back_hip_joint": 0.220893,#------
+        "left_back_knee_joint": 0,#----
+        "left_back_ankle_joint": -0.5,#-----
+        "right_front_hip_joint": -0.069029,#+++
+        "right_front_knee_joint": 0.452524,#++++
+        "right_front_ankle_joint": 0,#+++++
+        "right_back_hip_joint": -0.920388,#----
+        "right_back_knee_joint": 1.866855,####+++++
+        "right_back_ankle_joint": -0.50468,#+++++
         }
 
         self.limit_relate = {
@@ -119,9 +119,6 @@ class HWI:
         joints_positions is a dictionary with joint names as keys and joint positions as values
         Warning: expects radians
         """
-
-
-
         ids_positions = {
             self.joints[joint]: position + self.joints_offsets[joint]
             for joint, position in joints_positions.items()
@@ -169,4 +166,3 @@ class HWI:
             if joint not in ignore
         ]
         return np.array(np.around(present_velocities, 3))
-

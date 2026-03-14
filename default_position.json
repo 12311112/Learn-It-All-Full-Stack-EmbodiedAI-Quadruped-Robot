@@ -1,62 +1,62 @@
 {
   "left_front_hip_joint": {
     "id": 0,
-    "position_rad": -0.138058,
-    "position_deg": -7.91
+    "position_rad": -0.084369,
+    "position_deg": -4.834
   },
   "left_front_knee_joint": {
-    "id": 1,
-    "position_rad": 2.38534,
-    "position_deg": 136.67
+    "id": 4,
+    "position_rad": -0.335942,
+    "position_deg": -19.248
   },
   "left_front_ankle_joint": {
-    "id": 2,
-    "position_rad": 0.371223,
-    "position_deg": 21.27
+    "id": 5,
+    "position_rad": 0.316,
+    "position_deg": 18.105
   },
   "left_back_hip_joint": {
     "id": 3,
-    "position_rad": 0.34668,
-    "position_deg": 19.863
+    "position_rad": 0.220893,
+    "position_deg": 12.656
   },
   "left_back_knee_joint": {
-    "id": 4,
-    "position_rad": -0.648874,
-    "position_deg": -37.178
+    "id": 1,
+    "position_rad": -2.057068,
+    "position_deg": -117.861
   },
   "left_back_ankle_joint": {
-    "id": 5,
-    "position_rad": 0.403437,
-    "position_deg": 23.115
+    "id": 2,
+    "position_rad": 1.672039,
+    "position_deg": 95.801
   },
   "right_front_hip_joint": {
-    "id": 9,
-    "position_rad": -0.949534,
-    "position_deg": -54.404
+    "id": 6,
+    "position_rad": -0.069029,
+    "position_deg": -3.955
   },
   "right_front_knee_joint": {
-    "id": 10,
-    "position_rad": 1.756408,
-    "position_deg": 100.635
+    "id": 7,
+    "position_rad": 0.452524,
+    "position_deg": 25.928
   },
   "right_front_ankle_joint": {
-    "id": 11,
-    "position_rad": -0.441786,
-    "position_deg": -25.312
+    "id": 8,
+    "position_rad": 2.133767,
+    "position_deg": 122.256
   },
   "right_back_hip_joint": {
-    "id": 6,
-    "position_rad": 0.016874,
-    "position_deg": 0.967
+    "id": 9,
+    "position_rad": -0.920388,
+    "position_deg": -52.734
   },
   "right_back_knee_joint": {
-    "id": 7,
-    "position_rad": -0.648874,
-    "position_deg": -37.178
+    "id": 10,
+    "position_rad": 1.866855,
+    "position_deg": 106.963
   },
   "right_back_ankle_joint": {
-    "id": 8,
-    "position_rad": 2.176719,
-    "position_deg": 124.717
+    "id": 11,
+    "position_rad": -0.50468,
+    "position_deg": -28.916
   }
 }
