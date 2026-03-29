@@ -271,6 +271,13 @@ URDF_TO_LOCAL_JOINT = {
 
 
 JOINT_ORDER = [URDF_TO_LOCAL_JOINT[name] for name in URDF_JOINT_ORDER]
+LEG_JOINTS = {
+    "left_front": ["left_front_hip_joint", "left_front_knee_joint", "left_front_ankle_joint"],
+    "right_front": ["right_front_hip_joint", "right_front_knee_joint", "right_front_ankle_joint"],
+    "left_back": ["left_back_hip_joint", "left_back_knee_joint", "left_back_ankle_joint"],
+    "right_back": ["right_back_hip_joint", "right_back_knee_joint", "right_back_ankle_joint"],
+}
+LEG_INDEX = {"left_front": 0, "right_front": 1, "left_back": 2, "right_back": 3}
 
 
 
@@ -290,6 +297,33 @@ def send_local_cmd_ordered(hwi, local_cmd: Dict[str, float]):
     ordered_positions = [mech_to_servo(hwi, name, local_cmd[name]) for name in JOINT_ORDER]
 
     hwi.io.write_goal_position(ordered_ids, ordered_positions)
+
+
+def isolate_legs_cmd(local_cmd: Dict[str, float], active_leg: str, hold_pose: Dict[str, float]) -> Dict[str, float]:
+    if active_leg == "all":
+        return local_cmd
+    out = local_cmd.copy()
+    for leg_name, joints in LEG_JOINTS.items():
+        if leg_name == active_leg:
+            continue
+        for joint_name in joints:
+            out[joint_name] = hold_pose[joint_name]
+    return out
+
+
+def print_leg_phase(active_leg: str, gait: GaitController, gait_state: GaitState, body_state: BodyState):
+    leg_names = ["left_front", "right_front", "left_back", "right_back"] if active_leg == "all" else [active_leg]
+    stand_frac = gait_state["stand_frac"]
+    offsets = gait_state["offset"]
+
+    for leg_name in leg_names:
+        idx = LEG_INDEX[leg_name]
+        phase = (gait.phase + offsets[idx]) % 1.0
+        phase_name = "STANCE" if phase < stand_frac else "SWING"
+        foot = body_state["feet"][idx]
+        home = body_state["default_feet"][idx]
+        dx, dy, dz = foot - home
+        print(f"[LEG] {leg_name:11s} phase={phase:.3f} {phase_name:6s} dxyz=({dx:+.4f},{dy:+.4f},{dz:+.4f})")
 
 
 def setup_gui_sliders():
@@ -347,6 +381,12 @@ def main():
     parser.add_argument("--usb-port", default="/dev/ttyUSB0")
     parser.add_argument("--duration", type=float, default=0.0, help="秒，0=持续运行")
     parser.add_argument("--dt", type=float, default=0.02)
+    parser.add_argument(
+        "--active-leg",
+        choices=["all", "left_front", "right_front", "left_back", "right_back"],
+        default="right_front",
+        help="只下发指定腿，其余腿锁在 real_pose",
+    )
     args = parser.parse_args()
 
     gait_type = GaitType.TROT
@@ -410,10 +450,12 @@ def main():
                 break
 
             gait.step(gait_state, body_state, args.dt)
+            print_leg_phase(args.active_leg, gait, gait_state, body_state)
 
 
             joints = ik.inverse_kinematics(body_state)
             local_cmd = joints_to_local_cmd(joints)
+            local_cmd = isolate_legs_cmd(local_cmd, args.active_leg, hwi.real_pose)
             send_local_cmd_ordered(hwi, local_cmd)
 
 
