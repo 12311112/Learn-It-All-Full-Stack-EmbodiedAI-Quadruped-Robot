@@ -150,12 +150,17 @@ class Imu:
 
 
 if __name__ == "__main__":
-    imu = Imu(50, calibrate=True, upside_down=False)
-    # imu = Imu(50, upside_down=False)
+    # Set calibrate=True once to generate imu_calib_data.pkl, then switch back to False.
+    imu = Imu(50, calibrate=False, upside_down=False)
     while True:
-        data = imu.get_data()
-        # print(data)
-        print("gyro", np.around(data["gyro"], 3))
-        print("accelero", np.around(data["accelero"], 3))
+        quat = imu.get_data()
+        euler = imu.get_data(euler=True)
+        if quat is None or euler is None:
+            print("Waiting for valid IMU sample...")
+            print("---")
+            time.sleep(1 / 25)
+            continue
+        print("quat(x,y,z,w)", np.around(quat, 3))
+        print("euler_rad(x,y,z)", np.around(euler, 3))
         print("---")
         time.sleep(1 / 25)

@@ -8,17 +8,17 @@ class HWI:
         # --- 用户自定义的12舵机四足配置 ---
         self.joints = {
             "left_front_hip_joint": 0,
-            "left_front_knee_joint": 1,
-            "left_front_ankle_joint": 2,
+            "left_front_knee_joint": 4,#4
+            "left_front_ankle_joint": 5,#5
             "left_back_hip_joint": 3,
-            "left_back_knee_joint": 4,
-            "left_back_ankle_joint": 5,
+            "left_back_knee_joint": 1,#1
+            "left_back_ankle_joint": 2,#2
             "right_front_hip_joint": 6,
             "right_front_knee_joint": 7,
             "right_front_ankle_joint": 8,
-            "right_back_hip_joint": 9,
-            "right_back_knee_joint": 10,
-            "right_back_ankle_joint": 11,
+            "right_back_hip_joint": 9,#9
+            "right_back_knee_joint": 10,#10
+            "right_back_ankle_joint": 11,#11
         }
 
         # 零位字典 (所有关节归中)
@@ -38,63 +38,93 @@ class HWI:
         }
 
         # 初始站立姿态字典
-        # 注意：这里我先全部填0，你需要根据你的机械结构实际情况修改这些数值！
         self.init_pos = {
-            "left_front_hip_joint": 0.0,
-            "left_front_knee_joint": 0.0,
-            "left_front_ankle_joint": 0.0,
-            "left_back_hip_joint": 0.0,
-            "left_back_knee_joint": 0.0,
-            "left_back_ankle_joint": 0.0,
-            "right_front_hip_joint": 0.0,
-            "right_front_knee_joint": 0.0,
-            "right_front_ankle_joint": 0.0,
-            "right_back_hip_joint": 0.0,
-            "right_back_knee_joint": 0.0,
-            "right_back_ankle_joint": 0.0,
+        "left_front_hip_joint": -0.055223,
+        "left_front_knee_joint": -0.587515,
+        "left_front_ankle_joint": 0.257709,
+
+        "left_back_hip_joint": 0.299126,
+        "left_back_knee_joint": 0.185612,
+        "left_back_ankle_joint": -0.572175,
+
+        "right_front_hip_joint": -0.058291,
+        "right_front_knee_joint": 0.696427,
+        "right_front_ankle_joint": -0.058291,
+
+        "right_back_hip_joint": -0.895845,
+        "right_back_knee_joint": 0.80534,
+        "right_back_ankle_joint": -0.409573,
         }
+
+        self.real_pose = {
+        "left_front_hip_joint":0 , ##+++++++  
+        "left_front_knee_joint":-0.96754,#-----
+        "left_front_ankle_joint":1.850729,###-----
+
+        "left_back_hip_joint": 0,#------
+        "left_back_knee_joint": -0.96754,#----
+        "left_back_ankle_joint": 1.850729,#-----
+
+        "right_front_hip_joint": 0,#+++
+        "right_front_knee_joint": -0.96754,#++++
+        "right_front_ankle_joint": 1.850729,#+++++
+
+        "right_back_hip_joint":  0,#----
+        "right_back_knee_joint": -0.96754,####+++++
+        "right_back_ankle_joint": 1.850729,#+++++
+        }
+
+        # real_pose 坐标系到控制器坐标系的符号映射
+        # 如果某个关节 real_pose 是反向定义，就把该关节改成 -1
+        self.real_pose_signs = {
+        "left_front_hip_joint": 1.0,
+        "left_front_knee_joint": 1.0,
+        "left_front_ankle_joint": 1.0,
+
+        "left_back_hip_joint": -1.0,
+        "left_back_knee_joint": 1.0,
+        "left_back_ankle_joint": 1.0,
+
+        "right_front_hip_joint": -1.0,
+        "right_front_knee_joint": -1.0,  
+        "right_front_ankle_joint": -1.0,
+
+        "right_back_hip_joint": 1.0,
+        "right_back_knee_joint": -1.0,
+        "right_back_ankle_joint": -1.0,
+    }
 
         # 舵机偏移量字典 (用于校准机械零点)
         # 请在校准后填入具体数值
         self.joints_offsets = {joint: 0.0 for joint in self.joints.keys()}
 
-
         # --- 控制参数 ---
-        self.kps = np.ones(len(self.joints)) * 32  # 默认刚度
+        self.kps = np.ones(len(self.joints)) * 8  # 默认刚度
         self.kds = np.ones(len(self.joints)) * 0   # 默认阻尼
         self.low_torque_kps = np.ones(len(self.joints)) * 2 # 启动时低刚度
 
         self.io = rustypot.feetech(usb_port, 1000000)
 
-    @staticmethod
-    def _to_float_list(values):
-        return [float(v) for v in values]
 
     def set_kps(self, kps):
-        self.kps = self._to_float_list(kps)
+        self.kps = kps
         self.io.set_kps(list(self.joints.values()), self.kps)
 
     def set_kds(self, kds):
-        self.kds = self._to_float_list(kds)
+        self.kds = kds
         self.io.set_kds(list(self.joints.values()), self.kds)
 
     def set_kp(self, id, kp):
         self.io.set_kps([id], [kp])
 
     def turn_on(self):
-        self.io.set_kps(
-            list(self.joints.values()), self._to_float_list(self.low_torque_kps)
-        )
-
+        self.io.set_kps(list(self.joints.values()), self.low_torque_kps)
         print("turn on : low KPS set")
         time.sleep(1)
-
         self.set_position_all(self.init_pos)
         print("turn on : init pos set")
-
         time.sleep(1)
-
-        self.io.set_kps(list(self.joints.values()), self._to_float_list(self.kps))
+        self.io.set_kps(list(self.joints.values()), self.kps)################
         print("turn on : high kps")
 
     def turn_off(self):
@@ -113,14 +143,16 @@ class HWI:
         joints_positions is a dictionary with joint names as keys and joint positions as values
         Warning: expects radians
         """
-        ids_positions = {
-            self.joints[joint]: position + self.joints_offsets[joint]
-            for joint, position in joints_positions.items()
-        }
+        ids = []
+        positions = []
 
-        self.io.write_goal_position(
-            list(self.joints.values()), list(ids_positions.values())
-        )
+        for joint, position in joints_positions.items():
+            if joint not in self.joints:
+                raise KeyError(f"Unknown joint name: {joint}")
+            ids.append(self.joints[joint])
+            positions.append(position + self.joints_offsets[joint])
+
+        self.io.write_goal_position(ids, positions)
 
     def get_present_positions(self, ignore=[]):
         """
@@ -159,5 +191,4 @@ class HWI:
             for joint, vel in zip(self.joints.keys(), present_velocities)
             if joint not in ignore
         ]
-
         return np.array(np.around(present_velocities, 3))

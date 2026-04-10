@@ -1,62 +1,62 @@
 {
-  "left_front_hip_joint": {
-    "id": 0,
-    "position_rad": 0.748583,
-    "position_deg": 42.891
-  },
-  "left_front_knee_joint": {
-    "id": 1,
-    "position_rad": -2.606233,
-    "position_deg": -149.326
-  },
-  "left_front_ankle_joint": {
-    "id": 2,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
-  },
   "left_back_hip_joint": {
     "id": 3,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
+    "position_rad": 0.299126,
+    "position_deg": 17.139
   },
   "left_back_knee_joint": {
-    "id": 4,
-    "position_rad": 1.570796,
-    "position_deg": 90.0
+    "id": 1,
+    "position_rad": 0.185612,
+    "position_deg": 10.635
   },
   "left_back_ankle_joint": {
-    "id": 5,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
-  },
-  "right_front_hip_joint": {
-    "id": 6,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
-  },
-  "right_front_knee_joint": {
-    "id": 7,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
-  },
-  "right_front_ankle_joint": {
-    "id": 8,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
+    "id": 2,
+    "position_rad": -0.572175,
+    "position_deg": -32.783
   },
   "right_back_hip_joint": {
     "id": 9,
-    "position_rad": 1.57233,
-    "position_deg": 90.088
+    "position_rad": -0.895845,
+    "position_deg": -51.328
   },
   "right_back_knee_joint": {
     "id": 10,
-    "position_rad": 1.570796,
-    "position_deg": 90.0
+    "position_rad": 0.80534,
+    "position_deg": 46.143
   },
   "right_back_ankle_joint": {
     "id": 11,
-    "position_rad": 1.569262,
-    "position_deg": 89.912
+    "position_rad": -0.409573,
+    "position_deg": -23.467
+  },
+  "left_front_hip_joint": {
+    "id": 0,
+    "position_rad": -0.050621,
+    "position_deg": -2.9
+  },
+  "left_front_knee_joint": {
+    "id": 4,
+    "position_rad": -0.687223,
+    "position_deg": -39.375
+  },
+  "left_front_ankle_joint": {
+    "id": 5,
+    "position_rad": 0.470932,
+    "position_deg": 26.982
+  },
+  "right_front_hip_joint": {
+    "id": 6,
+    "position_rad": -0.400369,
+    "position_deg": -22.939
+  },
+  "right_front_knee_joint": {
+    "id": 7,
+    "position_rad": 1.106,
+    "position_deg": 63.369
+  },
+  "right_front_ankle_joint": {
+    "id": 8,
+    "position_rad": -1.352971,
+    "position_deg": -77.52
   }
 }
