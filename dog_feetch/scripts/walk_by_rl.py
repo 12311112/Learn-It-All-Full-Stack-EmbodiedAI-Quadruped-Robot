@@ -2,13 +2,19 @@ import time
 import pickle
 
 import numpy as np
-from runtime.position_hwi import HWI
-from runtime.onnx_infer import OnnxInfer
+from mini_bdx_runtime.rustypot_position_hwi import HWI
+from mini_bdx_runtime.onnx_infer import OnnxInfer
 
-from runtime.raw_imu import Imu
-from runtime.xbox import XBoxController
-from runtime.rl_utils import make_action_dict, LowPassActionFilter
-
+from mini_bdx_runtime.raw_imu import Imu
+from mini_bdx_runtime.poly_reference_motion import PolyReferenceMotion
+from mini_bdx_runtime.xbox_controller import XBoxController
+from mini_bdx_runtime.feet_contacts import FeetContacts
+from mini_bdx_runtime.eyes import Eyes
+from mini_bdx_runtime.sounds import Sounds
+from mini_bdx_runtime.antennas import Antennas
+from mini_bdx_runtime.projector import Projector
+from mini_bdx_runtime.rl_utils import make_action_dict, LowPassActionFilter
+from mini_bdx_runtime.duck_config import DuckConfig
 
 import os
 
@@ -19,12 +25,13 @@ class RLWalk:
     def __init__(
         self,
         onnx_model_path: str,
-        serial_port: str = "/dev/ttyUSB0",
+        duck_config_path: str = f"{HOME_DIR}/duck_config.json",
+        serial_port: str = "/dev/ttyACM0",
         control_freq: float = 50,
         pid=[30, 0, 0],
         action_scale=0.25,
         commands=False,
-
+        pitch_bias=0,
         save_obs=False,
         replay_obs=None,
         cutoff_frequency=None,
