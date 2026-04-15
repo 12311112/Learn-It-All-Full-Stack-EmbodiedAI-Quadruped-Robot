@@ -7,12 +7,7 @@
 #
 import numpy as np
 
-# Policy output order provided by training/export side.
-# action[0:3]   -> right_front (hip, thigh/knee, calf/ankle)
-# action[3:6]   -> left_front
-# action[6:9]   -> right_back
-# action[9:12]  -> left_back
-policy_action_order = [
+mujoco_joints_order = [
     "right_front_hip_joint",
     "right_front_knee_joint",
     "right_front_ankle_joint",
@@ -24,62 +19,17 @@ policy_action_order = [
     "right_back_ankle_joint",
     "left_back_hip_joint",
     "left_back_knee_joint",
-    "left_back_ankle_joint",
+    "left_back_ankle_joint",  
 ]
-
-# RL mechanical direction signs (policy/body convention -> robot joint command convention).
-real_pose_signs_rl = {
-    "left_front_hip_joint": 1.0,
-    "left_front_knee_joint": -1.0,
-    "left_front_ankle_joint": -1.0,
-    "left_back_hip_joint": -1.0,
-    "left_back_knee_joint": -1.0,
-    "left_back_ankle_joint": -1.0,
-    "right_front_hip_joint": -1.0,
-    "right_front_knee_joint": 1.0,
-    "right_front_ankle_joint": 1.0,
-    "right_back_hip_joint": 1.0,
-    "right_back_knee_joint": 1.0,
-    "right_back_ankle_joint": 1.0,
-}
-
-# TODO ADD BACK
 def action_to_pd_targets(action, offset, scale):
     return offset + scale * action
 
-
-def policy_to_robot_action(action, robot_joints_order):
-    action = np.asarray(action)
-    if action.shape[0] != len(policy_action_order):
-        raise ValueError(
-            f"Expected action length {len(policy_action_order)}, got {action.shape[0]}"
-        )
-
-    policy_index = {joint: i for i, joint in enumerate(policy_action_order)}
-    missing_joints = [joint for joint in robot_joints_order if joint not in policy_index]
-    if missing_joints:
-        raise KeyError(f"robot_joints_order has unknown joints: {missing_joints}")
-
-    missing_signs = [joint for joint in robot_joints_order if joint not in real_pose_signs_rl]
-    if missing_signs:
-        raise KeyError(f"Missing real_pose_signs_rl for joints: {missing_signs}")
-
-    reordered = np.array([action[policy_index[joint]] for joint in robot_joints_order])
-    signs = np.array([real_pose_signs_rl[joint] for joint in robot_joints_order], dtype=float)
-    return reordered * signs
-
-
 def make_action_dict(action, joints_order):
-    if len(action) != len(joints_order):
-        raise ValueError(
-            f"action length ({len(action)}) != joints_order length ({len(joints_order)})"
-        )
-
     action_dict = {}
     for i, a in enumerate(action):
         if "antenna" not in joints_order[i]:
             action_dict[joints_order[i]] = a
-
+    
     return action_dict
 
 

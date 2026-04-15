@@ -1,14 +1,19 @@
 import time
 import pickle
 import numpy as np
+import os
+import sys
+
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 from runtime.position_hwi import HWI
 from runtime.onnx_infer import OnnxInfer
 from runtime.raw_imu import Imu
 from runtime.xbox import XBoxController
-from runtime.rl_utils import make_action_dict, LowPassActionFilter, policy_to_robot_action
-
-
-import os
+from runtime.rl_utils import make_action_dict, LowPassActionFilter
 
 HOME_DIR = os.path.expanduser("~")
 
@@ -23,8 +28,6 @@ class RLWalk:
         action_scale=0.25,
         commands=False,
         pitch_bias=0,
-        save_obs=False,
-        replay_obs=None,
         cutoff_frequency=None,
     ):
 
@@ -41,13 +44,6 @@ class RLWalk:
         self.control_freq = control_freq
         self.pid = pid
 
-        self.save_obs = save_obs
-        if self.save_obs:
-            self.saved_obs = []
-
-        self.replay_obs = replay_obs
-        if self.replay_obs is not None:
-            self.replay_obs = pickle.load(open(self.replay_obs, "rb"))
 
         self.action_filter = None
         if cutoff_frequency is not None:
@@ -72,19 +68,13 @@ class RLWalk:
         self.last_last_action = np.zeros(self.num_dofs)
         self.last_last_last_action = np.zeros(self.num_dofs)
 
-        self.robot_joints_order = list(self.hwi.joints.keys())
-        self.init_pos = np.array(
-            [self.hwi.init_pos[joint] for joint in self.robot_joints_order], dtype=float
-        )
-        self.joint_signs = np.array(
-            [self.hwi.real_pose_signs_rl.get(joint, 1.0) for joint in self.robot_joints_order],
-            dtype=float,
-        )
+        self.init_pos = list(self.hwi.init_pos.values())
+        self.joint_signs = list(self.hwi.real_pose_signs_rl.values()) 
 
         self.motor_targets = np.array(self.init_pos.copy())
-        self.prev_motor_targets = np.array(self.init_pos.copy())
 
-        self.last_commands = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        # [lin_vel_x, lin_vel_y, yaw_rate]
+        self.last_commands = [0.0, 0.0, 0.0]
 
         self.paused = False        
         self.command_freq = 20  # hz
@@ -96,9 +86,9 @@ class RLWalk:
 
         imu_data = self.imu.get_data()
 
-        dof_pos = self.hwi.get_present_positions()  # rad
+        dof_pos = self.hwi.get_present_positions()  # rad  ####得到的顺序 顺序对 但是符号不一定对 减去一个init 然后乘以负号就行了
 
-        dof_vel = self.hwi.get_present_velocities()  # rad/s
+        dof_vel = self.hwi.get_present_velocities()  # rad/s#####  乘以负号就行
 
         if dof_pos is None or dof_vel is None:
             return None
@@ -111,8 +101,8 @@ class RLWalk:
             print(f"ERROR len(dof_vel) != {self.num_dofs}")
             return None
 
-        cmds = self.last_commands
-        dof_pos_rel = (dof_pos - self.init_pos) * self.joint_signs
+        cmds = np.asarray(self.last_commands, dtype=float)[:3]
+        dof_pos_rel = (dof_pos - self.init_pos) * self.joint_signs ##############没问题
         dof_vel_rl = dof_vel * self.joint_signs
 
         obs = np.concatenate(
@@ -125,13 +115,10 @@ class RLWalk:
                 self.last_action,
                 self.last_last_action,
                 self.last_last_last_action,
-                self.motor_targets
             ]
         )
-
         return obs
 
-############直观感觉 这里要求kp是严格顺序   但是因为kp大小都一样 所以顺序也无所谓吧
     def start(self):
         # 四足 12 关节，别再写死 14
         n = len(self.hwi.joints)
@@ -158,12 +145,10 @@ class RLWalk:
             print("Starting")
             start_t = time.time()
             while True:
-                left_trigger = 0
-                right_trigger = 0
                 t = time.time()
 
                 if self.commands:
-                    self.last_commands, self.buttons, left_trigger, right_trigger = (
+                    self.last_commands, self.buttons, _, _ = (
                         self.xbox_controller.get_last_command()
                     )
                     if self.buttons.A.triggered:
@@ -180,33 +165,15 @@ class RLWalk:
                 obs = self.get_obs()
                 if obs is None:
                     continue
-                if self.save_obs:
-                    self.saved_obs.append(obs)
 
-                if self.replay_obs is not None:
-                    if i < len(self.replay_obs):
-                        obs = self.replay_obs[i]
-                    else:
-                        print("BREAKING ")
-                        break
-
-                action = np.asarray(self.policy.infer(obs), dtype=float)
-                if len(action) != self.num_dofs:
-                    print(f"ERROR len(action) != {self.num_dofs}, got {len(action)}")
-                    continue
-
+                action = np.asarray(self.policy.infer(obs), dtype=float)####这里的顺序是
                 self.last_last_last_action = self.last_last_action.copy()
                 self.last_last_action = self.last_action.copy()
                 self.last_action = action.copy()
 
-
-                action_in_robot_order = policy_to_robot_action(
-                    action, self.robot_joints_order
-                )
                 self.motor_targets = (
-                    self.init_pos + action_in_robot_order * self.action_scale
+                    self.init_pos + action * self.action_scale*self.joint_signs    ###########没有乘以数值   init不对！！！！！！
                 )
-
 
                 if self.action_filter is not None:
                     self.action_filter.push(self.motor_targets)
@@ -216,12 +183,10 @@ class RLWalk:
                     ):  # give time to the filter to stabilize
                         self.motor_targets = filtered_motor_targets
 
-                self.prev_motor_targets = self.motor_targets.copy()
-
-
                 action_dict = make_action_dict(
-                    self.motor_targets, self.robot_joints_order
+                    self.motor_targets, list(self.hwi.joints.keys())
                 )
+
                 self.hwi.set_position_all(action_dict)
                 i += 1
                 took = time.time() - t
@@ -235,17 +200,26 @@ class RLWalk:
 
         except KeyboardInterrupt:
             pass
+        finally:
+            print("TURNING OFF")
+            try:
+                if self.commands and hasattr(self, "xbox_controller"):
+                    self.xbox_controller.close()
+            except Exception as e:
+                print("Failed to close controller:", e)
 
-        if self.save_obs:
-            pickle.dump(self.saved_obs, open("robot_saved_obs.pkl", "wb"))
-        print("TURNING OFF")
+            try:
+                self.hwi.turn_off()
+            except Exception as e:
+                print("Failed to turn off motors:", e)
+
 
 
 if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--onnx_model_path", type=str, required=True)
+    parser.add_argument("--onnx_model_path", type=str, default="/home/jetson/Desktop/dog/dog_feetch/TEST.onnx")
     parser.add_argument("-a", "--action_scale", type=float, default=0.25)
     parser.add_argument("-p", type=int, default=30)
     parser.add_argument("-i", type=int, default=0)
@@ -257,20 +231,6 @@ if __name__ == "__main__":
         action="store_true",
         default=True,
         help="external commands, keyboard or gamepad. Launch control_server.py on host computer",
-    )
-    parser.add_argument(
-        "--save_obs",
-        type=str,
-        required=False,
-        default=False,
-        help="save the run's observations",
-    )
-    parser.add_argument(
-        "--replay_obs",
-        type=str,
-        required=False,
-        default=None,
-        help="replay the observations from a previous run (can be from the robot or from mujoco)",
     )
     parser.add_argument("--cutoff_frequency", type=float, default=None)
 
@@ -285,8 +245,6 @@ if __name__ == "__main__":
         control_freq=args.control_freq,
         commands=args.commands,
         pitch_bias=args.pitch_bias,
-        save_obs=args.save_obs,
-        replay_obs=args.replay_obs,
         cutoff_frequency=args.cutoff_frequency,
     )
     print("Done instantiating RLWalk")

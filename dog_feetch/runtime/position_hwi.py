@@ -9,113 +9,97 @@ class HWI:
 
         # --- 用户自定义的12舵机四足配置 --- #################
         self.joints = {
-            "left_front_hip_joint": 0,
-            "left_front_knee_joint": 4,#4
-            "left_front_ankle_joint": 5,#5
-            "left_back_hip_joint": 3,
-            "left_back_knee_joint": 1,#1
-            "left_back_ankle_joint": 2,#2
             "right_front_hip_joint": 6,
             "right_front_knee_joint": 7,
             "right_front_ankle_joint": 8,
-            "right_back_hip_joint": 9,#9
-            "right_back_knee_joint": 10,#10
-            "right_back_ankle_joint": 11,#11
-        }
 
+            "left_front_hip_joint": 0,
+            "left_front_knee_joint": 4,   # 4
+            "left_front_ankle_joint": 5,  # 5
 
+            "right_back_hip_joint": 9,    # 9
+            "right_back_knee_joint": 10,  # 10
+            "right_back_ankle_joint": 11, # 11
 
-        # 零位字典 (所有关节归中)
-        self.zero_pos = { #####################
-            "left_front_hip_joint": 0.0,
-            "left_front_knee_joint": 0.0,
-            "left_front_ankle_joint": 0.0,
-            "left_back_hip_joint": 0.0,
-            "left_back_knee_joint": 0.0,
-            "left_back_ankle_joint": 0.0,
-            "right_front_hip_joint": 0.0,
-            "right_front_knee_joint": 0.0,
-            "right_front_ankle_joint": 0.0,
-            "right_back_hip_joint": 0.0,
-            "right_back_knee_joint": 0.0,
-            "right_back_ankle_joint": 0.0,
+            "left_back_hip_joint": 3,
+            "left_back_knee_joint": 1,    # 1
+            "left_back_ankle_joint": 2,   # 2
         }
 
         # 初始站立姿态字典
-        self.init_pos = {           #####################暂时
-        "left_front_hip_joint": -0.055223,
-        "left_front_knee_joint": -0.587515,
-        "left_front_ankle_joint": 0.257709,
+        self.init_pos = {
+            "right_front_hip_joint": -0.058291,
+            "right_front_knee_joint": 0.696427,
+            "right_front_ankle_joint": -0.058291,
 
-        "left_back_hip_joint": 0.299126,
-        "left_back_knee_joint": 0.185612,
-        "left_back_ankle_joint": -0.572175,
+            "left_front_hip_joint": -0.055223,
+            "left_front_knee_joint": -0.587515,
+            "left_front_ankle_joint": 0.257709,
 
-        "right_front_hip_joint": -0.058291,
-        "right_front_knee_joint": 0.696427,
-        "right_front_ankle_joint": -0.058291,
+            "right_back_hip_joint": -0.895845,
+            "right_back_knee_joint": 0.80534,
+            "right_back_ankle_joint": -0.409573,
 
-        "right_back_hip_joint": -0.895845,
-        "right_back_knee_joint": 0.80534,
-        "right_back_ankle_joint": -0.409573,
+            "left_back_hip_joint": 0.299126,
+            "left_back_knee_joint": 0.185612,
+            "left_back_ankle_joint": -0.572175,
+        }
+        self.real_pose_signs_rl = {
+            "right_front_hip_joint": -1.0,
+            "right_front_knee_joint": 1.0,
+            "right_front_ankle_joint": 1.0,
+
+            "left_front_hip_joint": 1.0,       #######
+            "left_front_knee_joint": -1.0,
+            "left_front_ankle_joint": -1.0,
+
+            "right_back_hip_joint": 1.0,
+            "right_back_knee_joint": 1.0,
+            "right_back_ankle_joint": 1.0,
+
+            "left_back_hip_joint": -1.0,
+            "left_back_knee_joint": -1.0,      ####
+            "left_back_ankle_joint": -1.0,     #####
         }
 
-        self.real_pose = {  #####################不通用
-        "left_front_hip_joint":0 , ##+++++++  
-        "left_front_knee_joint":-0.96754,#-----
-        "left_front_ankle_joint":1.850729,###-----
+        # self.real_pose = {  #####################不通用
+        # "left_front_hip_joint":0 , ##+++++++  
+        # "left_front_knee_joint":-0.96754,#-----
+        # "left_front_ankle_joint":1.850729,###-----
 
-        "left_back_hip_joint": 0,#------
-        "left_back_knee_joint": -0.96754,#----
-        "left_back_ankle_joint": 1.850729,#-----
+        # "left_back_hip_joint": 0,#------
+        # "left_back_knee_joint": -0.96754,#----
+        # "left_back_ankle_joint": 1.850729,#-----
 
-        "right_front_hip_joint": 0,#+++
-        "right_front_knee_joint": -0.96754,#++++
-        "right_front_ankle_joint": 1.850729,#+++++
+        # "right_front_hip_joint": 0,#+++
+        # "right_front_knee_joint": -0.96754,#++++
+        # "right_front_ankle_joint": 1.850729,#+++++
 
-        "right_back_hip_joint":  0,#----
-        "right_back_knee_joint": -0.96754,####+++++
-        "right_back_ankle_joint": 1.850729,#+++++
-        }
-
-        self.real_pose_signs_rl = {  
-        "left_front_hip_joint": 1.0,#######
-        "left_front_knee_joint": -1.0,
-        "left_front_ankle_joint":-1.0,
-
-        "left_back_hip_joint": -1.0,
-        "left_back_knee_joint": -1.0,####
-        "left_back_ankle_joint": -1.0,#####
-
-        "right_front_hip_joint": -1.0,
-        "right_front_knee_joint": 1.0,  
-        "right_front_ankle_joint": 1.0,
-
-        "right_back_hip_joint": 1.0,
-        "right_back_knee_joint": 1.0,
-        "right_back_ankle_joint": 1.0,
-        }
+        # "right_back_hip_joint":  0,#----
+        # "right_back_knee_joint": -0.96754,####+++++
+        # "right_back_ankle_joint": 1.850729,#+++++
+        # }
 
 
         # real_pose 坐标系到控制器坐标系的符号映射
         # 如果某个关节 real_pose 是反向定义，就把该关节改成 -1
-        self.real_pose_signs = {  #####################不通用
-        "left_front_hip_joint": 1.0,
-        "left_front_knee_joint": 1.0,
-        "left_front_ankle_joint": 1.0,
+    #     self.real_pose_signs = {  #####################不通用
+    #     "left_front_hip_joint": 1.0,
+    #     "left_front_knee_joint": 1.0,
+    #     "left_front_ankle_joint": 1.0,
 
-        "left_back_hip_joint": -1.0,
-        "left_back_knee_joint": 1.0,
-        "left_back_ankle_joint": 1.0,
+    #     "left_back_hip_joint": -1.0,
+    #     "left_back_knee_joint": 1.0,
+    #     "left_back_ankle_joint": 1.0,
 
-        "right_front_hip_joint": -1.0,
-        "right_front_knee_joint": -1.0,  
-        "right_front_ankle_joint": -1.0,
+    #     "right_front_hip_joint": -1.0,
+    #     "right_front_knee_joint": -1.0,  
+    #     "right_front_ankle_joint": -1.0,
 
-        "right_back_hip_joint": 1.0,
-        "right_back_knee_joint": -1.0,
-        "right_back_ankle_joint": -1.0,
-    }
+    #     "right_back_hip_joint": 1.0,
+    #     "right_back_knee_joint": -1.0,
+    #     "right_back_ankle_joint": -1.0,
+    # }
 
         # 舵机偏移量字典 (用于校准机械零点)
         # 请在校准后填入具体数值

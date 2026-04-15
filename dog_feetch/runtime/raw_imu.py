@@ -20,7 +20,12 @@ class Imu:
 
         i2c = busio.I2C(board.SCL, board.SDA)
         self.imu = adafruit_bno055.BNO055_I2C(i2c)
+
+        # self.imu.mode = adafruit_bno055.IMUPLUS_MODE
+        # self.imu.mode = adafruit_bno055.ACCGYRO_MODE
+        # self.imu.mode = adafruit_bno055.GYRONLY_MODE
         self.imu.mode = adafruit_bno055.NDOF_MODE
+        # self.imu.mode = adafruit_bno055.NDOF_FMC_OFF_MODE
 
         if upside_down:
             self.imu.axis_remap = (
@@ -34,8 +39,8 @@ class Imu:
 
         else:
             self.imu.axis_remap = (
-                adafruit_bno055.AXIS_REMAP_Y,
                 adafruit_bno055.AXIS_REMAP_X,
+                adafruit_bno055.AXIS_REMAP_Y,
                 adafruit_bno055.AXIS_REMAP_Z,
                 adafruit_bno055.AXIS_REMAP_POSITIVE,
                 adafruit_bno055.AXIS_REMAP_POSITIVE,
@@ -89,8 +94,6 @@ class Imu:
         self.last_imu_data = {
             "gyro": [0, 0, 0],
             "accelero": [0, 0, 0],
-            "euler_deg_xyz": [0, 0, 0],
-            "euler_h_r_p": [0, 0, 0],
         }
         self.imu_queue = Queue(maxsize=1)
         Thread(target=self.imu_worker, daemon=True).start()
@@ -123,7 +126,6 @@ class Imu:
             try:
                 gyro = np.array(self.imu.gyro).copy()
                 accelero = np.array(self.imu.acceleration).copy()
-                euler = self.imu.euler
             except Exception as e:
                 print("[IMU]:", e)
                 continue
@@ -134,21 +136,11 @@ class Imu:
             if gyro.any() is None or accelero.any() is None:
                 continue
 
-            if euler is None:
-                euler = (np.nan, np.nan, np.nan)
-            euler_h_r_p = np.array(euler, dtype=float)
-            # BNO055 euler order is (heading, roll, pitch) -> reorder to (x, y, z)
-            euler_deg_xyz = np.array(
-                [euler_h_r_p[1], euler_h_r_p[2], euler_h_r_p[0]], dtype=float
-            )
-
             accelero[0] -= self.x_offset
 
             data = {
                 "gyro": gyro,
                 "accelero": accelero,
-                "euler_deg_xyz": euler_deg_xyz,
-                "euler_h_r_p": euler_h_r_p,
             }
 
             self.imu_queue.put(data)
@@ -168,10 +160,8 @@ if __name__ == "__main__":
     imu = Imu(50, upside_down=False)
     while True:
         data = imu.get_data()
-        print("\033[2J\033[H", end="")
+        # print(data)
         print("gyro", np.around(data["gyro"], 3))
         print("accelero", np.around(data["accelero"], 3))
-        print("euler_deg_xyz", np.around(data["euler_deg_xyz"], 3))
-        print("euler_h_r_p", np.around(data["euler_h_r_p"], 3))
         print("---")
         time.sleep(1 / 25)
