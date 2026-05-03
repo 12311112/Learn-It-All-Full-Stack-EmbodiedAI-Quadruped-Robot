@@ -17,6 +17,9 @@ https://github.com/user-attachments/assets/35e0f9d1-ff54-483b-a3b3-77c9c0c3400d
 
 4.在jetson nano中（可用树莓派代替，算力要求不高），进行了rl策略实机部署及IK控制器验证。
 
+我们团队的目标在于打造一个良好的生态社区，你可以随时在GitHub中提问，或者联系我1790815185@qq.com
+
+
 
 
 
