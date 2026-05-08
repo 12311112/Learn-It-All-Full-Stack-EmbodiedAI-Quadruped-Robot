@@ -1,5 +1,5 @@
 # Learn-It-All: Full-Stack Embodied AI Quadruped Robot
-
+Copyright © 2022 Intelligent Driving Laboratory (iDLab). All rights reserved.
 <p align="center">
   <b>A low-cost full-stack quadruped robot project for embodied AI beginners.</b>
 </p>
