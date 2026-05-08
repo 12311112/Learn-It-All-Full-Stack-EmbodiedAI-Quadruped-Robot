@@ -21,7 +21,7 @@
 
 ---
 
-## Overview
+## Overview 
 
 Embodied AI is becoming one of the most important directions in robotics and artificial intelligence. However, the entry barrier is still high for beginners because a complete embodied AI workflow usually involves mechanical design, simulation, reinforcement learning, controller design, and real-world deployment.
 
