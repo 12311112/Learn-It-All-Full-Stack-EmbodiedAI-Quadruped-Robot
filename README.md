@@ -23,7 +23,7 @@
 
 ## Overview 
 
-Embodied AI is becoming one of the most important directions in robotics and artificial intelligence. However, the entry barrier is still high for beginners because a complete embodied AI workflow usually involves mechanical design, simulation, reinforcement learning, controller design, and real-world deployment.
+Embodied AI is now becoming one of the most important directions in robotics and artificial intelligence. However, the entry barrier is still too high for beginners because a complete embodied AI workflow usually involves mechanical design, simulation, reinforcement learning, controller design, and real-world deployment.
 
 This project aims to provide a **low-cost full-stack quadruped robot platform**. With a hardware cost of around **1500 RMB**, beginners can experience the complete development pipeline of an embodied AI quadruped robot.
 
@@ -184,7 +184,6 @@ rednote：5305501614
 Email: 1790815185@qq.com，htq24@mails.tsinghua.edu.cn
 
 ---
-
 
 
 
